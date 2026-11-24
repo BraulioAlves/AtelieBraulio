@@ -31,4 +31,11 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
+// Cria as tabelas do banco automaticamente se não existirem
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AtelieBraulio.Data.AppDbContext>();
+    db.Database.EnsureCreated();
+}
+
 app.Run();

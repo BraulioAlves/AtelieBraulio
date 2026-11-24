@@ -67,7 +67,7 @@
                 using var conteudoArquivo = new ByteArrayContent(dadosFoto);
                 conteudoArquivo.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
                 conteudo.Add(conteudoArquivo, "file", nomeArquivo);
-                conteudo.Add(new StringContent("ml_padrão"), "upload_preset");
+                conteudo.Add(new StringContent("ml_padrao"), "upload_preset");
 
                 var resposta = await Http.PostAsync(
                     "https://api.cloudinary.com/v1_1/ivvoxil7/image/upload",

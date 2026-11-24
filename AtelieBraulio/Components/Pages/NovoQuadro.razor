@@ -1,9 +1,8 @@
 @page "/novo-quadro"
-
 @rendermode InteractiveServer
 @inject GaleriaService Servico
 @inject NavigationManager Nav
-@inject IWebHostEnvironment Env
+@inject HttpClient Http
 
 <h3>Adicionar Novo Quadro</h3>
 
@@ -29,41 +28,69 @@
 }
 
 <br /><br />
-<button @onclick="Salvar"
-    style="background: #25D366; color: white; padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold;">Salvar
-Quadro</button>
+<button class="btn-salvar" @onclick="Salvar" disabled="@enviando">
+    @(enviando ? "Enviando foto..." : "Salvar quadro")
+</button>
+
+@if (mensagemErro != null)
+{
+    <p style="color:red">@mensagemErro</p>
+}
 
 @code {
     Quadro novo = new();
-   
     byte[]? dadosFoto;
     string? nomeArquivo;
+    string? mensagemErro;
+    bool enviando = false;
 
     async Task EscolherFoto(InputFileChangeEventArgs e)
     {
         var arquivo = e.File;
         nomeArquivo = Guid.NewGuid().ToString() + Path.GetExtension(arquivo.Name);
-
         using var ms = new MemoryStream();
         await arquivo.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(ms);
         dadosFoto = ms.ToArray();
-
-        // Mostra a prévia SEM salvar o arquivo ainda
         novo.Imagem = $"data:{arquivo.ContentType};base64,{Convert.ToBase64String(dadosFoto)}";
     }
 
-    void Salvar()
+    async Task Salvar()
     {
-        if (dadosFoto != null && nomeArquivo != null)
+        enviando = true;
+        mensagemErro = null;
+        StateHasChanged();
+        try
         {
-            var caminho = Path.Combine(Env.WebRootPath, "images", nomeArquivo);
-            File.WriteAllBytes(caminho, dadosFoto);
-            // Troca a prévia pelo caminho real
-            novo.Imagem = $"images/{nomeArquivo}";
-        }
+            if (dadosFoto != null && nomeArquivo != null)
+            {
+                using var conteudo = new MultipartFormDataContent();
+                using var conteudoArquivo = new ByteArrayContent(dadosFoto);
+                conteudoArquivo.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
+                conteudo.Add(conteudoArquivo, "file", nomeArquivo);
+                conteudo.Add(new StringContent("ml_padrão"), "upload_preset");
 
-        Servico.AdicionarQuadro(novo);
-        Nav.NavigateTo("/galeria");
+                var resposta = await Http.PostAsync(
+                    "https://api.cloudinary.com/v1_1/ivvoxil7/image/upload",
+                    conteudo);
+                var json = await resposta.Content.ReadAsStringAsync();
+                if (!resposta.IsSuccessStatusCode)
+                {
+                    mensagemErro = "Erro ao subir foto: " + json;
+                    enviando = false;
+                    return;
+                }
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                var url = doc.RootElement.GetProperty("secure_url").GetString();
+                novo.Imagem = url;
+            }
+            Servico.AdicionarQuadro(novo);
+            Nav.NavigateTo("/galeria");
+        }
+        catch (Exception ex)
+        {
+            mensagemErro = "Erro: " + ex.Message;
+            enviando = false;
+        }
     }
 
     protected override void OnInitialized()

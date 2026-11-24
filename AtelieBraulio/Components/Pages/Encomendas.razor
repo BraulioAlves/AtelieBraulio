@@ -1,0 +1,13 @@
+﻿@page "/encomendas"
+@rendermode InteractiveServer
+
+<h3>Quadro Sob Encomenda</h3>
+<p>Quer um quadro só seu? Me conta como você quer!</p>
+
+<p>O que você quer no quadro?</p>
+<input @bind="pedido" style="width:100%; padding:10px;" placeholder="Ex: Ipê amarelo, 80x100, para sala" />
+
+<br /><br />
+<a href="https://wa.me/5534997159200?text=Olá Bráulio! Quero encomendar: @pedido" target="_blank" style="background:#25D366; color:white; padding:12px 20px; border-radius:8px; text-decoration:none; font-weight:bold;">Pedir pelo WhatsApp</a>
+
+@code { string pedido = ""; }

@@ -1,0 +1,76 @@
+@page "/novo-quadro"
+
+@rendermode InteractiveServer
+@inject GaleriaService Servico
+@inject NavigationManager Nav
+@inject IWebHostEnvironment Env
+
+<h3>Adicionar Novo Quadro</h3>
+
+<p>Título:</p>
+<input @bind="novo.Titulo" style="width: 100%; padding: 8px;" placeholder="Ex: Ipê roxo" />
+
+<p>Descrição:</p>
+<input @bind="novo.Descricao" style="width: 100%; padding: 8px;" placeholder="Ex: Óleo sobre tela 50x70" />
+
+<p>Preço:</p>
+<input @bind="novo.Preco" style="width: 100%; padding: 8px;" placeholder="Ex: R$ 1.200,00" />
+
+<p>Foto do quadro:</p>
+<InputFile OnChange="EscolherFoto" accept="image/*"
+           style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px;" />
+
+@if (!string.IsNullOrEmpty(novo.Imagem))
+{
+    <div style="margin-top: 15px;">
+        <p>Prévia:</p>
+        <img src="@novo.Imagem" style="max-width: 300px; border-radius: 8px; border: 1px solid #ddd;" />
+    </div>
+}
+
+<br /><br />
+<button @onclick="Salvar"
+    style="background: #25D366; color: white; padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold;">Salvar
+Quadro</button>
+
+@code {
+    Quadro novo = new();
+   
+    byte[]? dadosFoto;
+    string? nomeArquivo;
+
+    async Task EscolherFoto(InputFileChangeEventArgs e)
+    {
+        var arquivo = e.File;
+        nomeArquivo = Guid.NewGuid().ToString() + Path.GetExtension(arquivo.Name);
+
+        using var ms = new MemoryStream();
+        await arquivo.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(ms);
+        dadosFoto = ms.ToArray();
+
+        // Mostra a prévia SEM salvar o arquivo ainda
+        novo.Imagem = $"data:{arquivo.ContentType};base64,{Convert.ToBase64String(dadosFoto)}";
+    }
+
+    void Salvar()
+    {
+        if (dadosFoto != null && nomeArquivo != null)
+        {
+            var caminho = Path.Combine(Env.WebRootPath, "images", nomeArquivo);
+            File.WriteAllBytes(caminho, dadosFoto);
+            // Troca a prévia pelo caminho real
+            novo.Imagem = $"images/{nomeArquivo}";
+        }
+
+        Servico.AdicionarQuadro(novo);
+        Nav.NavigateTo("/galeria");
+    }
+
+    protected override void OnInitialized()
+    {
+        if (!Servico.EstaLogado)
+        {
+            Nav.NavigateTo("/login");
+        }
+    }
+}

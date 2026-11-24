@@ -1,0 +1,36 @@
+@page "/login"
+@rendermode InteractiveServer
+@inject GaleriaService Servico
+@inject NavigationManager Nav
+
+<h3>Área do Artista</h3>
+<p>Só o Bráulio pode entrar aqui!</p>
+
+<p>Senha:</p>
+<input type="password" @bind="senhaDigitada" style="width:100%; padding:10px;" placeholder="Digite sua senha" />
+
+@if (!string.IsNullOrEmpty(erro))
+{
+    <p style="color:red;">@erro</p>
+}
+
+<br />
+<button @onclick="Entrar" style="background:#007BFF; color:white; padding:12px 20px; border:none; border-radius:8px; font-weight:bold;">Entrar</button>
+
+@code {
+    string senhaDigitada = "";
+    string erro = "";
+
+    void Entrar()
+    {
+        if (Servico.VerificarSenha(senhaDigitada))
+        {
+            Servico.EstaLogado = true;
+            Nav.NavigateTo("/galeria");
+        }
+        else
+        {
+            erro = "Senha errada! Tenta de novo.";
+        }
+    }
+}

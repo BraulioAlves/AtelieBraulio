@@ -1,0 +1,89 @@
+@page "/galeria"
+@rendermode InteractiveServer
+@inject GaleriaService Servico
+
+<h3>Galeria de Arte</h3>
+<p>Aqui vão as fotos dos meus quadros</p>
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px;">
+    @foreach (var q in Servico.Quadros)
+    {
+        <div style="border: 1px solid #ddd; border-radius: 10px; padding: 15px; width: 280px;">
+            <img src="@q.Imagem" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;" />
+            <h4>@q.Titulo</h4>
+            <p>@q.Descricao</p>
+
+            @if (q.Id == editandoId)
+            {
+                <p>Editar preço:</p>
+                <input @bind="editandoPreco" placeholder="Ex: 400" style="width: 100%; padding: 8px; margin-bottom: 10px;" />
+                <button @onclick="() => SalvarPreco()"
+                        style="background: #25D366; color: white; border: none; padding: 8px 12px; border-radius: 6px; width: 100%; font-weight: bold;">Salvar
+                    Preço</button>
+                }
+        else
+                {
+                    <p style="font-weight: bold; color: green; font-size: 18px;">@FormatarPreco(q.Preco)</p>
+                    <a href="https://wa.me/5534997229357?text=Olá! Quero o quadro @q.Titulo" target="_blank"
+                       style="display: block; background: #25D366; color: white; text-align: center; padding: 10px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-bottom: 8px;">Quero
+                        esse quadro</a>
+            
+                        @if (Servico.EstaLogado)
+                        {
+                            <div style="display: flex; gap: 8px;">
+                                <button @onclick="() => { editandoId = q.Id; editandoPreco = q.Preco; }"
+                                        style="flex: 1; background: #FFC107; border: none; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">✏️
+                                    Preço</button>
+                                    <button @onclick="() => Excluir(q)"
+                                            style="flex: 1; background: #DC3545; color: white; border: none; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">🗑️
+                                        Excluir</button>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    }
+                </div>
+
+                <br />
+                @if (Servico.EstaLogado)
+                {
+                    <a href="/novo-quadro"
+                       style="background: #007BFF; color: white; padding: 12px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">+
+                        Adicionar Novo Quadro</a>
+                        <button @onclick="Sair"
+                                style="background: #6c757d; color: white; padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; margin-left: 10px; cursor: pointer;">Sair</button>
+                    }
+
+@code {
+    int? editandoId = null;
+    string editandoPreco = ""; string FormatarPreco(object valor)
+    {
+        if (valor == null) return "R$ 0,00";
+        var texto = (valor?.ToString() ?? "").Replace("R$", "").Trim(); if (decimal.TryParse(texto,
+        System.Globalization.NumberStyles.Any, new System.Globalization.CultureInfo("pt-BR"), out var numero))
+        {
+            return numero.ToString("C", new System.Globalization.CultureInfo("pt-BR"));
+        }
+        return "R$ " + texto;
+    }
+
+    void SalvarPreco()
+    {
+        var quadro = Servico.Quadros.FirstOrDefault(x => x.Id == editandoId);
+        if (quadro != null)
+        {
+            quadro.Preco = editandoPreco;
+            Servico.AtualizarPreco(quadro);
+        }
+        editandoId = null;
+    }
+
+    void Excluir(Quadro q)
+    {
+        Servico.RemoverQuadro(q);
+    }
+    void Sair()
+    {
+        Servico.EstaLogado = false;
+    }
+}

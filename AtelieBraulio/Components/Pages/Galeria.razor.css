@@ -1,0 +1,22 @@
+    .card {
+        border: 1px solid #e0e0e0 !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+        transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+        border-radius: 10px !important;
+        overflow: hidden !important;
+    }
+
+    .card:hover {
+        transform: translateY(-6px) scale(1.02);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15) !important;
+        border-color: #d0d0d0 !important;
+        cursor: pointer !important;
+    }
+
+    .card img {
+        transition: transform 0.3s ease;
+    }
+
+    .card:hover img {
+        transform: scale(1.05);
+    }

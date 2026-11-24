@@ -2,18 +2,17 @@
 
 <div class="page">
     <main>
-        <div style="background: #1a2a4a; padding: 15px; text-align: center;">
-    <div style="color: white; font-size: 24px; font-weight: bold; margin-bottom: 10px;">
-        AtelieBraulio
-    </div>
-    <nav style="display: flex; gap: 25px; justify-content: center; flex-wrap: wrap;">
-        <a href="" style="color: white; text-decoration: none;">Início</a>
-        <a href="galeria" style="color: white; text-decoration: none;">Galeria</a>
-        <a href="encomendas" style="color: white; text-decoration: none;">Encomendas</a>
-        <a href="vendidos" style="color: white; text-decoration: none;">Vendidos</a>
-        <a href="login" style="color: white; text-decoration: none;">Login</a>
-    </nav>
-</div>
+        <div class="topo">
+            <div class="topo-titulo">AtelieBraulio</div>
+            <button class="menu-btn" @onclick="() => menuAberto = !menuAberto">☰ Menu</button>
+            <nav class="menu @(menuAberto ? "aberto" : "")">
+                <a href="" @onclick="FecharMenu">Início</a>
+                <a href="galeria" @onclick="FecharMenu">Galeria</a>
+                <a href="encomendas" @onclick="FecharMenu">Encomendas</a>
+                <a href="vendidos" @onclick="FecharMenu">Vendidos</a>
+                <a href="login" @onclick="FecharMenu">Login</a>
+            </nav>
+        </div>
 
         <article class="content px-4">
             @Body
@@ -22,11 +21,14 @@
         <footer style="background: #1a2a4a; color: white; padding: 30px 20px; margin-top: 40px; text-align: center;">
             <h4 style="margin: 0;">AtelieBraulio</h4>
             <p style="margin: 10px 0;">Óleo sobre tela - Natureza morta e paisagens de Araxá, MG</p>
-            <p style="margin: 5px 0;">📍 Araxá - Minas Gerais | 📱 WhatsApp: (34) 99715-9200 | 📧
-                ateliebraulio@gmail.com</p>
-                <p style="margin: 5px 0;">🖼️ Quadros sob encomenda - Fale comigo e faça o seu!</p>
-                <p style="font-size: 12px; opacity: 0.7; margin-top: 15px;">© 2026 AtelieBraulio - Todos os direitos
-                    reservados</p>
-                </footer>
-            </main>
-        </div>
+            <p style="margin: 5px 0;">📍 Araxá - Minas Gerais | 📱 WhatsApp: (34) 99715-9200 | 📧 ateliebraulio@gmail.com</p>
+            <p style="margin: 5px 0;">🖼️ Quadros sob encomenda - Fale comigo e faça o seu!</p>
+            <p style="font-size: 12px; opacity: 0.7; margin-top: 15px;">© 2026 AtelieBraulio - Todos os direitos reservados</p>
+        </footer>
+    </main>
+</div>
+
+@code {
+    bool menuAberto = false;
+    void FecharMenu() { menuAberto = false; }
+}

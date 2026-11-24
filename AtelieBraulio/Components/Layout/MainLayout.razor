@@ -4,13 +4,14 @@
     <main>
         <div class="topo">
             <div class="topo-titulo">AtelieBraulio</div>
-            <button class="menu-btn" @onclick="() => menuAberto = !menuAberto">☰ Menu</button>
-            <nav class="menu @(menuAberto ? "aberto" : "")">
-                <a href="" @onclick="FecharMenu">Início</a>
-                <a href="galeria" @onclick="FecharMenu">Galeria</a>
-                <a href="encomendas" @onclick="FecharMenu">Encomendas</a>
-                <a href="vendidos" @onclick="FecharMenu">Vendidos</a>
-                <a href="login" @onclick="FecharMenu">Login</a>
+            <input type="checkbox" id="menu-toggle" class="menu-toggle" />
+            <label for="menu-toggle" class="menu-btn">☰ Menu</label>
+            <nav class="menu">
+                <a href="">Início</a>
+                <a href="galeria">Galeria</a>
+                <a href="encomendas">Encomendas</a>
+                <a href="vendidos">Vendidos</a>
+                <a href="login">Login</a>
             </nav>
         </div>
 
@@ -27,8 +28,3 @@
         </footer>
     </main>
 </div>
-
-@code {
-    bool menuAberto = false;
-    void FecharMenu() { menuAberto = false; }
-}

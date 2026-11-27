@@ -98,7 +98,7 @@
             conteudo.Add(new StringContent("ml_default"), "upload_preset");
 
             var resposta = await Http.PostAsync(
-                "https://api.cloudinary.com/v1_1/ivvoxil7/image/upload",
+                "https://api.cloudinary.com/v1_1/iwvoxil7/image/upload",
                 conteudo);
 
             var json = await resposta.Content.ReadAsStringAsync();

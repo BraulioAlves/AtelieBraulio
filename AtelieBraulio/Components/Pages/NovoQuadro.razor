@@ -43,46 +43,78 @@
     string? nomeArquivo;
     string? mensagemErro;
     bool enviando = false;
+    string? tipoFoto;
 
     async Task EscolherFoto(InputFileChangeEventArgs e)
     {
-        var arquivo = e.File;
-        nomeArquivo = Guid.NewGuid().ToString() + Path.GetExtension(arquivo.Name);
-        using var ms = new MemoryStream();
-        await arquivo.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(ms);
-        dadosFoto = ms.ToArray();
-        novo.Imagem = $"data:{arquivo.ContentType};base64,{Convert.ToBase64String(dadosFoto)}";
+        try
+        {
+            mensagemErro = null;
+            var arquivo = e.File;
+
+            // Celular passa de 10MB fácil, subi pra 20MB
+            if (arquivo.Size > 20 * 1024 * 1024)
+            {
+                mensagemErro = "Foto muito grande, tira uma foto menor ou escolhe outra.";
+                return;
+            }
+
+            nomeArquivo = Guid.NewGuid().ToString() + Path.GetExtension(arquivo.Name);
+            tipoFoto = arquivo.ContentType;
+
+            using var ms = new MemoryStream();
+            await arquivo.OpenReadStream(maxAllowedSize: 20 * 1024 * 1024).CopyToAsync(ms);
+            dadosFoto = ms.ToArray();
+
+            novo.Imagem = $"data:{arquivo.ContentType};base64,{Convert.ToBase64String(dadosFoto)}";
+        }
+        catch (Exception ex)
+        {
+            mensagemErro = "Erro ao ler foto: " + ex.Message;
+            dadosFoto = null;
+        }
     }
 
     async Task Salvar()
     {
+        // TRAVA AQUI: se não tem foto, não deixa salvar quebrado
+        if (dadosFoto == null)
+        {
+            mensagemErro = "Escolhe a foto de novo, ela não carregou.";
+            return;
+        }
+
         enviando = true;
         mensagemErro = null;
         StateHasChanged();
+
         try
         {
-            if (dadosFoto != null && nomeArquivo != null)
-            {
-                using var conteudo = new MultipartFormDataContent();
-                using var conteudoArquivo = new ByteArrayContent(dadosFoto);
-                conteudoArquivo.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
-                conteudo.Add(conteudoArquivo, "file", nomeArquivo);
-                conteudo.Add(new StringContent("ml_padrao"), "upload_preset");
+            using var conteudo = new MultipartFormDataContent();
+            using var conteudoArquivo = new ByteArrayContent(dadosFoto);
+            // Agora manda com o tipo real da foto, não fixo jpeg
+            conteudoArquivo.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(tipoFoto ?? "image/jpeg");
+            conteudo.Add(conteudoArquivo, "file", nomeArquivo);
+            conteudo.Add(new StringContent("ml_padrao"), "upload_preset");
 
-                var resposta = await Http.PostAsync(
-                    "https://api.cloudinary.com/v1_1/ivvoxil7/image/upload",
-                    conteudo);
-                var json = await resposta.Content.ReadAsStringAsync();
-                if (!resposta.IsSuccessStatusCode)
-                {
-                    mensagemErro = "Erro ao subir foto: " + json;
-                    enviando = false;
-                    return;
-                }
-                using var doc = System.Text.Json.JsonDocument.Parse(json);
-                var url = doc.RootElement.GetProperty("secure_url").GetString();
-                novo.Imagem = url;
+            var resposta = await Http.PostAsync(
+                "https://api.cloudinary.com/v1_1/ivvoxil7/image/upload",
+                conteudo);
+
+            var json = await resposta.Content.ReadAsStringAsync();
+
+            if (!resposta.IsSuccessStatusCode)
+            {
+                mensagemErro = "Erro ao subir foto: " + json;
+                enviando = false;
+                StateHasChanged();
+                return;
             }
+
+            using var doc = System.Text.Json.JsonDocument.Parse(json);
+            var url = doc.RootElement.GetProperty("secure_url").GetString();
+            novo.Imagem = url;
+
             Servico.AdicionarQuadro(novo);
             Nav.NavigateTo("/galeria");
         }
@@ -90,6 +122,7 @@
         {
             mensagemErro = "Erro: " + ex.Message;
             enviando = false;
+            StateHasChanged();
         }
     }
 

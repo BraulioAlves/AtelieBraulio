@@ -95,7 +95,7 @@
             // Agora manda com o tipo real da foto, não fixo jpeg
             conteudoArquivo.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(tipoFoto ?? "image/jpeg");
             conteudo.Add(conteudoArquivo, "file", nomeArquivo);
-            conteudo.Add(new StringContent("ml_padrao"), "upload_preset");
+            conteudo.Add(new StringContent("ml_default"), "upload_preset");
 
             var resposta = await Http.PostAsync(
                 "https://api.cloudinary.com/v1_1/ivvoxil7/image/upload",
